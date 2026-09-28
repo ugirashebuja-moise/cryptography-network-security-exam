@@ -1,6 +1,6 @@
-# Network Traffic Filtering
+# Task 3: Network Traffic Filtering
 
-## 1. Environment & Architecture Overview
+## 1. Environment & Network Overview
 To mitigate unauthorized access and safeguard the Student Records Server, traffic filtering rules were implemented using `iptables` in the authorized laboratory environment.
 
 ### IP Address and Subnet Allocations
@@ -18,7 +18,7 @@ The following `iptables` commands were written and applied to enforce network is
 
 ```bash
 #!/bin/bash
-# Clear existing rules and set policies
+# Clear existing rules and set default policies
 sudo iptables -F
 sudo iptables -X
 sudo iptables -P INPUT DROP
@@ -35,7 +35,7 @@ sudo iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 sudo iptables -A INPUT -s 192.168.30.0/24 -d 192.168.10.5 -j DROP
 
 # ------------------------------------------------------------------------------
-# 3b. Permit authorised staff network access to the service specified (Port 22)
+# 3b. Permit authorised staff network access to the specified service (Port 22)
 # ------------------------------------------------------------------------------
 sudo iptables -A INPUT -p tcp -s 192.168.10.0/24 -d 192.168.10.5 --dport 22 -j ACCEPT
 
