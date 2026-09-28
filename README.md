@@ -1,46 +1,46 @@
-# Cryptography & Network Security Project report
+# Integrated Situation Final Practical Project
 
-## Overview
-This repository contains the security deliverables for the ULK Polytechnic Institute cryptography and network security assessment. It includes a Python file encryption/decryption and integrity verification toolkit, network traffic filtering rule sets, risk assessment documentation, and an overall technical report in LaTeX.
+**Module:** Cryptography & Network Security (ETTCS801)  
+**Institution:** ULK Polytechnic Institute  
+**Student ID:** 4202670018  
+**Lecturer:** Isaac TUMWINE  
 
 ---
 
-## 1. Project Directory Structure
+## Project Overview
+
+This repository contains the practical security implementation and technical documentation addressing key vulnerabilities in student record management, host isolation, and access control.
+
+---
+
+## Project Structure
 
 ```text
-cryptography-network-security-exam/
-├── README.md                   # Project overview, structure, installation, and run guide
-├── risk_assessment.md          # Task 1: Assets, vulnerabilities, risk rankings, & controls
-├── security_toolkit.py         # Task 2: Python script for encryption, decryption, and SHA-256 hashing
-├── firewall_rules.sh           # Task 3: Shell script containing iptables traffic filtering rules
-├── filter_tests.md             # Task 3: Commands, expected outcomes, and actual test results
-├── report.tex                  # Task 5: Complete LaTeX source for technical report
-├── report.pdf                  # Task 5: Compiled PDF technical report
-├── sample_student_record.txt   # Sample data file generated for demonstration
-└── .gitignore                  # Git ignore file excluding secret keys and transient files
-# File Security Toolkit
+.
+├── security_toolkit.py                     # Python utility for AES/Fernet encryption/decryption & SHA-256 hashing
+├── risk_assessment.md                      # Risk analysis, asset mapping, and priority ranking
+├── filter_tests.md                         # iptables rule configuration and netcat empirical test logs
+├── cryptography_network_security_exam.tex  # Main technical report source (LaTeX format)
+├── cryptography_network_security_exam.pdf  # Compiled final technical report
+└── README.md                               # Repository documentation and user guide
+```
 
-A Python utility for file encryption, decryption, SHA-256 integrity verification, and tamper detection using AES-128 via the `cryptography` (Fernet) library.
+### 1. Cryptographic Toolkit (`security_toolkit.py`)
 
----
+Run the Python utility using command-line arguments:
 
-## Features
+```powershell
+# Display help and available options
+python security_toolkit.py -h
 
-- **Symmetric Encryption & Decryption**: Secure files using Fernet (AES-128 in CBC mode with HMAC-SHA256 authentication).
-- **Integrity Verification**: Calculate and compare SHA-256 hashes to detect unauthorized file tampering.
-- **CLI & Automated Workflow**: Run as a command-line utility or execute an automated test/demo workflow.
-- **Robust Error Handling**: Handles missing files, invalid encryption keys, and empty files gracefully.
+# Encrypt a target file
+python security_toolkit.py --encrypt sample.txt
 
----
+# Decrypt an encrypted file
+python security_toolkit.py --decrypt sample.txt.enc
 
-## Prerequisites & Installation
+# Generate SHA-256 integrity hash
+python security_toolkit.py --hash sample.txt
 
-### 1. Requirements
-- Python 3.8 or higher
-- `pip` (Python package installer)
-
-### 2. Install Dependencies
-Install the required `cryptography` library:
-
-```bash
-pip install cryptography
+# Verify file integrity against an expected hash
+python security_toolkit.py --verify sample.txt <EXPECTED_HASH>
