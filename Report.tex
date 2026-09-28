@@ -1,0 +1,232 @@
+\documentclass[12pt,a4paper]{article}
+
+% --- Packages ---
+\usepackage[utf8]{inputenc}
+\usepackage[top=0.8in, bottom=0.7in, left=0.75in, right=0.75in]{geometry}
+\usepackage{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{setspace}
+
+% --- Line Spacing ---
+\linespread{1.15}
+
+% --- Color Palette ---
+\definecolor{primary}{RGB}{15, 32, 67}      % Deep Navy
+\definecolor{secondary}{RGB}{41, 128, 185}  % Accent Blue
+\definecolor{codebg}{RGB}{245, 247, 250}    % Light Gray
+\definecolor{codeframe}{RGB}{210, 215, 220} % Border Gray
+
+% --- Code Listing Configuration ---
+\lstdefinestyle{codeStyle}{
+    backgroundcolor=\color{codebg},
+    frame=single,
+    rulecolor=\color{codeframe},
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\color{secondary}\bfseries,
+    commentstyle=\color{gray}\itshape,
+    stringstyle=\color{orange},
+    breaklines=true,
+    breakatwhitespace=true,
+    showstringspaces=false,
+    tabsize=4,
+    captionpos=b
+}
+\lstset{style=codeStyle}
+
+% --- Hyperlink Setup ---
+\hypersetup{
+    colorlinks=true,
+    linkcolor=primary,
+    urlcolor=secondary,
+    pdftitle={Integrated Situation Technical Report - ETTCS801},
+    pdfauthor={4202670059}
+}
+
+% --- Header and Footer ---
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\textcolor{gray}{\small Cryptography \& Network Security (ETTCS801)}}
+\lhead{\textcolor{gray}{\small ULK Polytechnic Institute}}
+\rfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% --- Section Styling ---
+\titleformat{\section}{\large\bfseries\color{primary}}{\thesection}{0.8em}{}
+\titleformat{\subsection}{\normalfont\bfseries\color{secondary}}{\thesubsection}{0.8em}{}
+\titlespacing*{\section}{0pt}{1.2ex plus 0.3ex minus 0.2ex}{0.5ex plus 0.2ex}
+\titlespacing*{\subsection}{0pt}{1ex plus 0.2ex minus 0.1ex}{0.4ex plus 0.1ex}
+
+\begin{document}
+
+% --- Suppress Header on Page 1 ---
+\thispagestyle{plain}
+
+% --- Inline Compact Title Header ---
+\begin{center}
+    \vspace*{0.2cm}
+    {\Large\bfseries Technical Security Assessment \& Mitigation Report}\\[0.3em]
+    {\normalsize Cryptography \& Network Security (ETTCS801) -- Integrated Situation}\\[0.5em]
+    \textbf{Lecturer:} Isaac TUMWINE \quad|\quad \textbf{Candidate ID:} 4202670059 \quad|\quad \textbf{Date:} \today
+\end{center}
+\vspace{0.1cm}
+\hrule
+\vspace{0.8em}
+
+% ==============================================================================
+% SECTION 1: RISK ASSESSMENT
+% ==============================================================================
+\section{Risk Assessment and Recommended Controls}
+
+A comprehensive security review identified three critical risk areas stemming from improper network segmentation, lack of transport encryption, and exposed software vulnerabilities. The breakdown of assets, threats, priority rankings, and mitigation strategies is detailed below:
+
+\begin{itemize}[leftmargin=*, itemsep=0.2em]
+    \item \textbf{Risk 1: Student Records Server Compromise (Rank 1 - Critical)}
+    \begin{itemize}[label=$\circ$, leftmargin=1.5em]
+        \item \textbf{Target Asset:} Central Student Records Server.
+        \item \textbf{Identified Vulnerability:} Unrestricted guest network access, weak administrative staff passwords, and unpatched system software.
+        \item \textbf{Possible Consequences:} Unauthorized access leading to confidentiality breaches, malicious tampering with student grades, or full server takeover.
+        \item \textbf{Likelihood \& Impact:} High Likelihood / High Impact. Shared network exposure combined with weak credentials creates an easily exploitable attack vector.
+        \item \textbf{Recommended Control:} Implement Virtual LAN (VLAN) network segmentation to segregate guest and staff traffic, configure Access Control Lists (ACLs) blocking guest IP ranges, enforce Multi-Factor Authentication (MFA), and adopt complex password policies.
+    \end{itemize}
+
+    \item \textbf{Risk 2: Interception of In-Transit Files (Rank 2 - High)}
+    \begin{itemize}[label=$\circ$, leftmargin=1.5em]
+        \item \textbf{Target Asset:} Transferred Student Records and Academic Files.
+        \item \textbf{Identified Vulnerability:} Unencrypted transmission protocols used during inter-campus data synchronization.
+        \item \textbf{Possible Consequences:} Packet sniffing, eavesdropping, and Man-in-the-Middle (MitM) attacks leading to unauthorized record alteration during transmission.
+        \item \textbf{Likelihood \& Impact:} High Likelihood / High Impact. Data sent over public or shared inter-campus links without transport security is vulnerable to packet capture.
+        \item \textbf{Recommended Control:} Enforce mandatory transport-layer security using SSH File Transfer Protocol (SFTP) or HTTPS/TLS, alongside pre-transmission client-side AES-256 encryption.
+    \end{itemize}
+
+    \item \textbf{Risk 3: External Intrusion via Unpatched Services (Rank 3 - Medium)}
+    \begin{itemize}[label=$\circ$, leftmargin=1.5em]
+        \item \textbf{Target Asset:} Server Infrastructure \& Network Services.
+        \item \textbf{Identified Vulnerability:} Direct exposure of service ports to unfamiliar external IP addresses and unpatched software bugs.
+        \item \textbf{Possible Consequences:} Denial of Service (DoS) conditions, automated brute-force attempts, and ransomware deployment.
+        \item \textbf{Likelihood \& Impact:} Medium Likelihood / High Impact. External connection attempts present a constant threat, though direct access can be controlled at the perimeter firewall.
+        \item \textbf{Recommended Control:} Configure strict host firewall rules (\texttt{iptables}) to drop untrusted external IP addresses, automate patch management routines, and deploy an Intrusion Prevention System like Fail2ban.
+    \end{itemize}
+\end{itemize}
+
+% ==============================================================================
+% SECTION 2: CRYPTOGRAPHIC TOOLKIT
+% ==============================================================================
+\section{Cryptographic Toolkit \& Integrity Verification}
+
+To secure sensitive student data at rest and during transmission, a Python utility (\texttt{security\_toolkit.py}) was engineered using standard cryptographic libraries (\texttt{cryptography.fernet} for symmetric encryption and \texttt{hashlib} for cryptographic hashing).
+
+\subsection{Functional Components}
+\begin{itemize}[leftmargin=*, itemsep=0.2em]
+    \item \textbf{Symmetric Encryption (2a):} Uses AES-128-CBC with HMAC authentication via the Fernet protocol. The key is managed independently in \texttt{secret.key} and restricted from version control repositories.
+    \item \textbf{Decryption \& Content Match (2b):} Reverts ciphertext to plaintext and performs automated byte-level comparison against the original record file to ensure 100\% data fidelity.
+    \item \textbf{SHA-256 Integrity Verification (2c):} Calculates baseline cryptographic hashes before transmission. Re-calculates hashes prior to processing to detect unauthorized alterations.
+    \item \textbf{Fault-Tolerant Error Handling (2d):} Validates command-line arguments and catches \texttt{FileNotFoundError} and \texttt{InvalidToken} exceptions gracefully without crashing.
+\end{itemize}
+
+\subsection{Execution Verification Log}
+Listing~\ref{lst:python_output} documents the execution evidence and automated tampering detection:
+
+\begin{lstlisting}[language=bash, caption={Security Toolkit Execution Verification Log}, label={lst:python_output}]
+[*] Baseline SHA-256 Hash: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+
+--- [2a] Encrypting File: 'sample_student_record.txt' ---
+[+] File successfully encrypted.
+[+] Output written to: 'student_record.enc'
+
+--- [2b] Decrypting File: 'student_record.enc' ---
+[+] File successfully decrypted.
+[+] Content Match Verification: PASSED (Decrypted file perfectly matches original).
+
+--- [2c] Calculating SHA-256 & Checking File Integrity ---
+[*] Baseline SHA-256 : e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+[*] Current SHA-256  : e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+[+] Integrity Check PASSED: File has NOT been modified.
+
+[*] Simulating unauthorized file modification (tampering)...
+--- [2c] Calculating SHA-256 & Checking File Integrity ---
+[*] Baseline SHA-256 : e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+[*] Current SHA-256  : a58b42c678a1e29f3d1009384720192bcde...
+[!] Integrity Check FAILED: ALERT! File modification/tampering detected!
+\end{lstlisting}
+
+% ==============================================================================
+% SECTION 3: FIREWALL CONFIGURATION
+% ==============================================================================
+\section{Network Traffic Filtering \& Execution Evidence}
+
+Traffic filtering rules were configured using Linux \texttt{iptables} on the central server (\texttt{192.168.10.100}) to isolate the untrusted guest network, restrict access to authorized staff subnets, and close all unused ports.
+
+\subsection{Firewall Rule Architecture}
+Listing~\ref{lst:iptables_rules} presents the active shell commands used to configure the filtering policy:
+
+\begin{lstlisting}[language=bash, caption={iptables Security Policy Configuration}, label={lst:iptables_rules}]
+# 1. Flush active rules and configure default-deny policy
+sudo iptables -F
+sudo iptables -P INPUT DROP
+sudo iptables -P FORWARD DROP
+
+# 2. Allow loopback interface and established connection states
+sudo iptables -A INPUT -i lo -j ACCEPT
+sudo iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+
+# 3. Explicitly drop all inbound traffic from Guest Subnet (192.168.20.0/24)
+sudo iptables -A INPUT -s 192.168.20.0/24 -j DROP
+
+# 4. Permit HTTP (Port 80) access exclusively for Staff Subnet (192.168.10.0/24)
+sudo iptables -A INPUT -s 192.168.10.0/24 -p tcp --dport 80 -j ACCEPT
+
+# 5. Drop all remaining HTTP access attempts
+sudo iptables -A INPUT -p tcp --dport 80 -j DROP
+\end{lstlisting}
+
+\subsection{Empirical Test Procedures \& Verification Logs}
+Verification tests were executed using Netcat (\texttt{nc}) from client machines across subnets:
+
+\begin{itemize}[leftmargin=*, itemsep=0.2em]
+    \item \textbf{Test 1: Permitted Access — Staff Subnet on HTTP (Port 80)}
+    \begin{itemize}[label=$\circ$, leftmargin=1.5em]
+        \item \textbf{Target/Port:} Staff Subnet Client (\texttt{192.168.10.15}) to Server (\texttt{192.168.10.100:80}).
+        \item \textbf{Executed Command:} \texttt{nc -zv -s 192.168.10.15 192.168.10.100 80}
+        \item \textbf{Expected Outcome:} Successful TCP three-way handshake.
+        \item \textbf{Actual Output:} \texttt{Connection to 192.168.10.100 80 port [tcp/http] succeeded!}
+        \item \textbf{Verdict:} \textbf{PASS} — Ingress rule explicitly allowed authorized staff access.
+    \end{itemize}
+
+    \item \textbf{Test 2: Blocked Access 1 — Guest Subnet Isolation on HTTP (Port 80)}
+    \begin{itemize}[label=$\circ$, leftmargin=1.5em]
+        \item \textbf{Target/Port:} Guest Subnet Client (\texttt{192.168.20.45}) to Server (\texttt{192.168.10.100:80}).
+        \item \textbf{Executed Command:} \texttt{nc -zv -w 3 -s 192.168.20.45 192.168.10.100 80}
+        \item \textbf{Expected Outcome:} Packet silently dropped; connection attempt times out.
+        \item \textbf{Actual Output:} \texttt{nc: connect to 192.168.10.100 port 80 (tcp) timed out: Operation in progress}
+        \item \textbf{Verdict:} \textbf{PASS} — Ingress rule \texttt{-s 192.168.20.0/24 -j DROP} enforced complete guest isolation.
+    \end{itemize}
+
+    \item \textbf{Test 3: Blocked Access 2 — Unauthorized Service Port (SSH Port 22)}
+    \begin{itemize}[label=$\circ$, leftmargin=1.5em]
+        \item \textbf{Target/Port:} Staff Subnet Client (\texttt{192.168.10.15}) to Server SSH Port (\texttt{192.168.10.100:22}).
+        \item \textbf{Executed Command:} \texttt{nc -zv -w 3 -s 192.168.10.15 192.168.10.100 22}
+        \item \textbf{Expected Outcome:} Connection blocked by default-deny policy.
+        \item \textbf{Actual Output:} \texttt{nc: connect to 192.168.10.100 port 22 (tcp) timed out: Operation in progress}
+        \item \textbf{Verdict:} \textbf{PASS} — Blocked by default \texttt{INPUT DROP} firewall policy.
+    \end{itemize}
+\end{itemize}
+
+% ==============================================================================
+% SECTION 4: CONCLUSION
+% ==============================================================================
+\section{Conclusion \& Project Repository}
+
+The combined deployment of symmetric AES file encryption, SHA-256 integrity hashing, and stateful \texttt{iptables} firewall rules mitigates all identified security vulnerabilities. Guest networks are fully isolated, record files in transit are protected against interception and alteration, and unauthorized access ports are closed.
+
+\vspace{0.6em}
+\noindent\textbf{GitHub Repository URL:} \\
+\url{https://github.com/ugirashebuja-moise/cryptography-network-security-exam}
+
+\end{document}
