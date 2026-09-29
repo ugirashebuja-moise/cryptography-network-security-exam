@@ -29,7 +29,7 @@ This repository contains the practical security implementation and technical doc
 
 1. **Clone the repository:**
    ```bash
-   git clone [https://github.com/Imani-Anto/cryptography-network-security-exam.git](https://github.com/Imani-Anto/cryptography-network-security-exam.git)
+   git clone [https://github.com/ugirashebuja-moise/cryptography-network-security-exam.git](https://github.com/ugirashebuja-moise/cryptography-network-security-exam.git)
    cd cryptography-network-security-exam
    ```
 Install Dependencies:
