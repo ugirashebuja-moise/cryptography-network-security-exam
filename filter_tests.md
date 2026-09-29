@@ -67,7 +67,7 @@ Verdict: PASS (Blocked by -s 192.168.20.0/24 -j DROP rule).
   ```bash
   nc -zv -w 3 -s 192.168.10.15 192.168.10.100 22
    ```
-
+  
 Expected Outcome: Connection attempt blocked by default-deny ingress policy.
 
 Actual Output:
