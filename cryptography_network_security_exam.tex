@@ -1,0 +1,276 @@
+\documentclass[12pt,a4paper]{article}
+
+% Packages
+\usepackage[utf8]{inputenc}
+\usepackage[margin=0.85in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{listings}
+\usepackage{fancyhdr}
+\usepackage{microtype}
+\usepackage{setspace}
+
+% Line Spacing Configuration
+\setstretch{1.15}
+
+% Color Definitions
+\definecolor{brandblue}{RGB}{0, 51, 102}
+\definecolor{codebg}{RGB}{245, 245, 245}
+\definecolor{codeframe}{RGB}{200, 200, 200}
+\definecolor{codegreen}{RGB}{0, 128, 0}
+\definecolor{codepurple}{RGB}{128, 0, 128}
+
+% Hyperlink Configuration
+\hypersetup{
+    colorlinks=true,
+    linkcolor=brandblue,
+    citecolor=brandblue,
+    urlcolor=brandblue
+}
+
+% Code Listing Configuration
+\lstset{
+    backgroundcolor=\color{codebg},
+    frame=single,
+    rulecolor=\color{codeframe},
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{brandblue}\bfseries,
+    stringstyle=\color{codepurple},
+    commentstyle=\color{codegreen}\itshape,
+    breaklines=true,
+    postbreak=\mbox{\textcolor{red}{$\hookrightarrow$}\space},
+    showstringspaces=false,
+    tabsize=4
+}
+
+% Header and Footer Setup
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\textbf{ULK Polytechnic Institute} --- ETTCS801}
+\rhead{\textbf{Technical Report}}
+\lfoot{Cryptography \& Network Security Integrated Situation}
+\rfoot{Page \thepage}
+
+\title{
+    \vspace{-1.2cm}
+    \textbf{\Large ULK POLYTECHNIC INSTITUTE}\\
+    \vspace{0.2cm}
+    \textbf{\Large Integrated Situation Technical Report}\\
+    \large Cryptography \& Network Security (ETTCS801)
+}
+\author{\textbf{Roll Number: 4202670059 / Lecturer: Isaac TUMWINE}}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}
+
+\hrule
+\vspace{0.2cm}
+
+\begin{abstract}
+This technical report details the implementation of security measures designed to address operational and network vulnerabilities identified at ULK Polytechnic Institute. The scope of work encompasses a comprehensive risk assessment, the creation of a custom Python security toolkit employing AES (Fernet) symmetric encryption and SHA-256 integrity verification, secure git version control setup, and the deployment of host-based firewall rules using \texttt{iptables}. Empirical testing validates that sensitive student records remain confidential, file integrity is verifiable, and unauthorized guest access to central server assets is completely restricted.
+\end{abstract}
+
+\vspace{0.2cm}
+\hrule
+\vspace{0.3cm}
+
+\section{Risk Assessment and Defense Strategy}
+
+An initial security review revealed several critical deficiencies across the central campus network, including unencrypted data transfers between campuses, unisolated guest subnet access, and weak password practices.
+
+\subsection{Asset and Vulnerability Identification}
+\begin{enumerate}
+    \item \textbf{Student Records Database \& Archives:}
+    \begin{itemize}
+        \item \emph{Vulnerability:} Unencrypted file storage and cross-campus transfer over public links.
+        \item \emph{Consequences:} Cleartext eavesdropping, unauthorized data modification, and severe compliance violations regarding student privacy.
+    \end{itemize}
+    
+    \item \textbf{Central Server Infrastructure:}
+    \begin{itemize}
+        \item \emph{Vulnerability:} Direct Guest network access to internal server subnets without host filtering boundaries.
+        \item \emph{Consequences:} Network reconnaissance, port scanning, unauthorized service abuse, and lateral movement.
+    \end{itemize}
+    
+    \item \textbf{Administrative \& Staff Accounts:}
+    \begin{itemize}
+        \item \emph{Vulnerability:} Weak password policies and outdated software packages on endpoints.
+        \item \emph{Consequences:} Increased exposure to brute-force authentication attacks and local privilege escalation.
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Risk Evaluation \& Priority Ranking}
+
+\begin{table}[htbp]
+\centering
+\caption{Risk Evaluation Matrix}
+\vspace{0.1cm}
+\small
+\begin{tabular}{@{}c l c c c@{}}
+\toprule
+\textbf{Risk ID} & \textbf{Description} & \textbf{Likelihood} & \textbf{Impact} & \textbf{Priority Rank} \\ \midrule
+\textbf{R1} & Unencrypted Data Storage \& Transmission & High & High & \textbf{Critical (Rank 1)} \\
+\textbf{R2} & Direct Guest Network Access to Central Server & High & Medium & \textbf{High (Rank 2)} \\
+\textbf{R3} & Weak Staff Passwords \& Credential Compromise & Medium & High & \textbf{Medium (Rank 3)} \\ \bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Ranking Justification:}
+\begin{itemize}
+    \item \textbf{Rank 1 (Unencrypted Data):} Cleartext transfers across active inter-campus channels present immediate exposure to passive sniffing, posing the highest risk to confidentiality.
+    \item \textbf{Rank 2 (Guest Access):} Open subnet routing allows unauthenticated devices to directly query server ports without network restriction.
+    \item \textbf{Rank 3 (Weak Passwords):} Credential harvesting requires active targeted interaction, making it a secondary exposure compared to open unencrypted network channels.
+\end{itemize}
+
+\subsection{Recommended Controls}
+\begin{enumerate}
+    \item \textbf{Data Security Control:} Enforce symmetric encryption (AES via Fernet) for stored files and transit assets combined with SHA-256 hash checks.
+    \item \textbf{Network Filtering Control:} Configure \texttt{iptables} rules to explicitly block all incoming traffic originating from the untrusted Guest subnet (\texttt{192.168.20.0/24}).
+    \item \textbf{Identity \& Access Control:} Enforce Multi-Factor Authentication (MFA), password complexity policies, and scheduled software updates.
+\end{enumerate}
+
+\section{Cryptographic Toolkit Implementation \& Verification}
+
+To enforce confidentiality and integrity, a Python tool (\texttt{security\_toolkit.py}) was developed utilizing the Python \texttt{cryptography} library and standard \texttt{hashlib} module.
+
+\subsection{Core Architecture}
+The toolkit handles AES symmetric encryption using the \texttt{Fernet} specification (which applies AES-128 in CBC mode with PKCS7 padding and HMAC authentication) and provides SHA-256 hashing functions. Key management ensures that the encryption key (\texttt{secret.key}) and generated encryption payloads are excluded from version control via a tailored \texttt{.gitignore} configuration.
+
+\paragraph{Version Control Protection (.gitignore):}
+To comply with security best practices and project requirements, sensitive runtime files, keys, and auxiliary build artifacts are excluded using standard pattern rules in \texttt{.gitignore}:
+
+\begin{lstlisting}[language=bash, caption={Repository Security Rules in .gitignore}]
+# Encryption Keys & Secrets (CRITICAL REQUIREMENT)
+secret.key
+*.key
+*.pem
+*.pub
+
+# Local Test Data & Encryption Outputs
+*.enc
+decrypted_*
+sample_student_record*
+
+# LaTeX Auxiliary & Build Files
+*.aux
+*.log
+*.out
+\end{lstlisting}
+
+\subsection{Program Implementation}
+\begin{lstlisting}[language=Python, caption={Core Functions of security\_toolkit.py}]
+def encrypt_file(file_path):
+    key = generate_or_load_key()
+    fernet = Fernet(key)
+    with open(file_path, "rb") as f:
+        data = f.read()
+    encrypted_data = fernet.encrypt(data)
+    with open(file_path + ".enc", "wb") as f:
+        f.write(encrypted_data)
+
+def calculate_sha256(file_path):
+    sha256_hash = hashlib.sha256()
+    with open(file_path, "rb") as f:
+        for byte_block in iter(lambda: f.read(4096), b""):
+            sha256_hash.update(byte_block)
+    return sha256_hash.hexdigest()
+\end{lstlisting}
+
+\subsection{Test Evidence \& Verification Workflows}
+Testing was executed against a target sample record file:
+
+\begin{enumerate}
+    \item \textbf{Encryption \& SHA-256 Hash Generation:}
+    \begin{lstlisting}[language=bash]
+$ python3 security_toolkit.py --encrypt sample.txt
+[+] Original SHA-256 Hash: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+[+] File encrypted successfully. Output saved to: 'sample.txt.enc'
+    \end{lstlisting}
+
+    \item \textbf{Decryption \& Integrity Hash Match:}
+    \begin{lstlisting}[language=bash]
+$ python3 security_toolkit.py --decrypt sample.txt.enc
+[+] File decrypted successfully. Output saved to: 'sample.txt'
+[+] Decrypted File SHA-256 Hash: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+    \end{lstlisting}
+
+    \item \textbf{Tamper Detection Verification:}
+    \begin{lstlisting}[language=bash]
+$ python3 security_toolkit.py --verify sample.txt INVALID_HASH_STRING
+[+] Current SHA-256 Hash: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+[+] Expected SHA-256 Hash: INVALID_HASH_STRING
+[!] INTEGRITY VERIFICATION: FAILED (File has been altered or tampered with!)
+    \end{lstlisting}
+\end{enumerate}
+
+\section{Network Traffic Filtering}
+
+Network filtering controls were implemented in the laboratory environment using Linux \texttt{iptables} on the Central Server (\texttt{192.168.10.100}) to isolate server resources from untrusted subnets.
+
+\subsection{Target Topology}
+\begin{itemize}
+    \item \textbf{Central Server IP:} \texttt{192.168.10.100}
+    \item \textbf{Staff Subnet (Authorized):} \texttt{192.168.10.0/24} (Permitted on HTTP Port 80)
+    \item \textbf{Guest Subnet (Untrusted):} \texttt{192.168.20.0/24} (Strictly Isolated)
+\end{itemize}
+
+\subsection{Firewall Rule Architecture}
+The following rules establish a default-drop policy and explicitly configure access controls:
+
+\begin{lstlisting}[language=bash, caption={iptables Rules Configuration}]
+# Flush existing rules and set default-deny policies
+sudo iptables -F
+sudo iptables -P INPUT DROP
+sudo iptables -P FORWARD DROP
+
+# Allow loopback and established connections
+sudo iptables -A INPUT -i lo -j ACCEPT
+sudo iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+
+# Block untrusted Guest network traffic
+sudo iptables -A INPUT -s 192.168.20.0/24 -j DROP
+
+# Permit HTTP access specifically from Staff network
+sudo iptables -A INPUT -s 192.168.10.0/24 -p tcp --dport 80 -j ACCEPT
+
+# Explicitly drop any remaining HTTP requests
+sudo iptables -A INPUT -p tcp --dport 80 -j DROP
+\end{lstlisting}
+
+\subsection{Empirical Test Execution Log}
+
+Empirical verification was conducted using \texttt{netcat} (\texttt{nc}):
+
+\begin{table}[htbp]
+\centering
+\caption{Firewall Verification Empirical Results}
+\vspace{0.1cm}
+\small
+\begin{tabular}{@{}p{2.2cm} p{4.2cm} p{4.6cm} c@{}}
+\toprule
+\textbf{Test Case} & \textbf{Command Executed} & \textbf{Observed Output} & \textbf{Verdict} \\ \midrule
+\textbf{Test 1:} Permitted Staff HTTP & \texttt{nc -zv -s 192.168.10.15 192.168.10.100 80} & \texttt{Connection to 192.168.10.100 80 port [tcp/http] succeeded!} & \textbf{PASS} \\ \midrule
+\textbf{Test 2:} Blocked Guest Access & \texttt{nc -zv -w 3 -s 192.168.20.45 192.168.10.100 80} & \texttt{nc: connect to 192.168.10.100 port 80 timed out: Operation in progress} & \textbf{PASS} \\ \midrule
+\textbf{Test 3:} Blocked Service (SSH Port 22) & \texttt{nc -zv -w 3 -s 192.168.10.15 192.168.10.100 22} & \texttt{nc: connect to 192.168.10.100 port 22 timed out: Operation in progress} & \textbf{PASS} \\ \bottomrule
+\end{tabular}
+\end{table}
+
+\section{Conclusion and Submission Details}
+
+This project successfully addresses the security weaknesses identified in the ULK Polytechnic Institute infrastructure. Symmetric AES encryption and SHA-256 checksum mechanisms protect sensitive student records against unauthorized disclosure and tampering. Furthermore, default-deny \texttt{iptables} firewall configurations effectively isolate the records server from untrusted guest networks while maintaining access for authorized staff.
+
+\subsection{Repository Information}
+All project files—including source code, test execution logs, risk assessments, the security-focused \texttt{.gitignore} configuration, and LaTeX project sources—have been committed to the GitHub repository below:
+
+\begin{center}
+\textbf{GitHub Repository URL:}\\
+\url{https://github.com/ugirashebuja-moise/cryptography-network-security-exam.git}
+\end{center}
+
+\end{document}
