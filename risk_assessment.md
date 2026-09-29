@@ -1,23 +1,38 @@
-# Risk Assessment Report
+# Integrated Risk Assessment & Defense Strategy
 
-## 1. Assets, Vulnerabilities, and Consequences
+## 1. Asset and Vulnerability Identification
 
-| Asset | Vulnerability | Possible Consequences |
-| :--- | :--- | :--- |
-| **Student Records Server** | Guest network access to the server; weak staff passwords; outdated software. | Unauthorized access leading to confidentiality breaches, grade tampering, and system compromise. |
-| **Transferred Student Files** | Unencrypted inter-campus file transfer protocols. | Interception (eavesdropping) or modification (Man-in-the-Middle attacks) of sensitive records in transit. |
-| **Server Infrastructure & Services** | Unfiltered exposure to unfamiliar external IP addresses; unpatched software vulnerabilities. | Denial of Service (DoS) attacks, brute-force intrusions, and potential malware or ransomware infection. |
+### Asset 1: Student Records Database & Archives
+* **Identified Vulnerability:** Unencrypted file storage and unencrypted cross-campus file transfers.
+* **Potential Consequences:** Interception, unauthorized disclosure, and tampering of sensitive academic records, leading to severe data privacy violations.
 
-## 2. Risk Rankings
+### Asset 2: Central Server Infrastructure
+* **Identified Vulnerability:** Direct Guest network access allowed to internal server subnets without firewall isolation.
+* **Potential Consequences:** Lateral network discovery, unauthorized probing, service abuse, and potential Denial of Service (DoS) attacks from untrusted devices.
 
-| Risk | Likelihood | Impact | Overall Rank | Justification |
+### Asset 3: System Administrator & Staff User Accounts
+* **Identified Vulnerability:** Weak password practices and outdated software on host operating systems.
+* **Potential Consequences:** Credential brute-forcing, unauthorized administrative privilege escalation, and full system takeover.
+
+---
+
+## 2. Risk Evaluation & Priority Ranking
+
+| Risk ID | Risk Description | Likelihood | Impact | Priority Rank |
 | :--- | :--- | :--- | :--- | :--- |
-| **Unauthorized Access to Student Records** | High | High | **1 (Critical)** | Weak passwords combined with guest network access create an easily exploitable entry point for sensitive data theft or modification. |
-| **Interception of In-Transit Files** | High | High | **2 (High)** | Transferring student data between campuses without encryption exposes data to packet sniffing and MitM alteration on shared links. |
-| **External Intrusion via Outdated Software** | Medium | High | **3 (Medium)** | Known unpatched vulnerabilities and repeated external connection attempts present a severe threat, though perimeter filtering can quickly mitigate direct access. |
+| **R1** | **Unencrypted Data Storage & Transmission** | High | High | **Critical (Rank 1)** |
+| **R2** | **Direct Guest Network Access to Central Server** | High | Medium | **High (Rank 2)** |
+| **R3** | **Weak Staff Passwords & Credential Compromise** | Medium | High | **Medium (Rank 3)** |
 
-## 3. Recommended Controls
+### Ranking Justifications:
+* **Rank 1 (Unencrypted Data):** Rated Critical because unencrypted transfers across public/shared campus links happen routinely. Interception directly damages data confidentiality and institutional integrity.
+* **Rank 2 (Guest Access):** Rated High due to direct network exposure without filtering boundaries, allowing unauthenticated guest devices to probe server ports.
+* **Rank 3 (Weak Passwords):** Rated Medium because exploitation requires targeted brute-force activity or active social engineering, making it slightly less immediate than cleartext network transfers.
 
-1. **Control for Risk 1 (Server Access):** Implement strict Network Segmentation (VLANs) to isolate the guest network, apply Access Control Lists (ACLs) blocking guest traffic to the server, and enforce Multi-Factor Authentication (MFA) along with strong password policies.
-2. **Control for Risk 2 (In-Transit Data):** Mandate transport layer encryption (SFTP, HTTPS/TLS) for inter-campus transfers and use client-side file encryption (AES-256) prior to transmission.
-3. **Control for Risk 3 (External Threats):** Deploy network firewall rules (`iptables`/`ufw`) to drop traffic from untrusted external IPs, establish an automated software patching schedule, and run an Intrusion Prevention System (e.g., Fail2ban).
+---
+
+## 3. Recommended Security Controls
+
+1. **Data Confidentiality & Integrity Control:** Enforce symmetric encryption (AES-128/256 via Fernet) for files at rest and in transit, verified via SHA-256 checksums.
+2. **Network Traffic Isolation Control:** Configure host firewall filtering (`iptables`) to explicitly drop incoming packets originating from the Guest network (`192.168.20.0/24`).
+3. **Access Control & Identity Management:** Implement enforced multi-factor authentication (MFA), strong password complexity rules, and automated OS security patch updates.
